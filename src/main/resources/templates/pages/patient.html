@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layout/layout}">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>Patient</title>
+</head>
+<body>
+<section layout:fragment="content" class="container">
+
+    <div class="grey-bg container-fluid">
+        <section id="minimal-statistics">
+            <div class="row pt-5">
+                <div class="col-6 mt-3 mb-1">
+                    <h4 class="text-uppercase">List of patients</h4>
+                </div>
+            </div>
+            <div class="row pt-1">
+                <div class="col-md-12">
+                    <div class="card shadow p-3 mb-5 bg-white rounded">
+                        <div class="card-content">
+                            <div class="card-body text-center">
+                                <div class="table-responsive">
+                                    <table class="table" id="patient-table">
+                                        <thead>
+                                        <tr>
+                                            <th scope="col">ID</th>
+                                            <th scope="col">Name</th>
+                                            <th scope="col">Phone Number</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <!--total Queue List-->
+                                        <tr th:each="data, iter : ${patientList}">
+                                            <td th:text="${data.id}"></td>
+                                            <td th:text="${data.name}"></td>
+                                            <td th:text="${data.phoneNumber}"></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</section>
+<section layout:fragment="custom-script">
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            var table = $('#patient-table').DataTable();
+        });
+    </script>
+</section>
+</body>
+</html>

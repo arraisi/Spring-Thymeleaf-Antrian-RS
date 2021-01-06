@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layout/layout}">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>Schedule</title>
+</head>
+<body>
+<section layout:fragment="content" class="container">
+
+    <div class="grey-bg container-fluid">
+        <section id="minimal-statistics">
+
+            <div th:if="${patientNotFound}" class="alert alert-warning alert-dismissible fade show pt-4" role="alert">
+                <strong>Patient is not found!</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="row">
+                <div class="col-12 mt-3 mb-1">
+                    <h4 class="text-uppercase">Schedule</h4>
+                </div>
+            </div>
+
+            <!--ANTRIAN SAAT INI-->
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="card current-queue-card bg-gradient shadow p-3 mb-4 rounded">
+                        <div class="card-content">
+                            <div class="card-body text-center">
+                                <div class="text-center">
+                                    <div class="media-body text-left">
+                                        <span>QUEUE NUMBER</span>
+                                        <h1 class="primary" id="currentQueue">-</h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--ANTRIAN-->
+            <div class="row">
+                <div class="col-xl-4 col-sm-6 col-12">
+                    <div id="totalQueueCard"
+                         class="card totalQueueCard shadow p-3 mb-4 rounded"
+                         th:onclick="toggleQueueList('total')"
+                         style="background-color: #A1E29C;">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="media d-flex">
+                                    <div class="media-body text-left">
+                                        <h3 class="primary" id="totalQueue">0</h3>
+                                        <span>Doctor Queue</span>
+                                    </div>
+                                </div>
+                                <div class="progress mt-1 mb-0" style="height: 7px;">
+                                    <div class="progress-bar bg-danger" id="totalQueueBar" role="progressbar"
+                                         style="width: 0%"
+                                         aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--ANTRIAN OBAT-->
+                <div class="col-xl-4 col-sm-6 col-12">
+                    <div id="pharmacyQueueCard"
+                         class="card pharmacyQueueCard shadow p-3 mb-4 rounded"
+                         th:onclick="toggleQueueList('pharmacy')">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="media d-flex">
+                                    <div class="media-body text-left">
+                                        <h3 class="warning" id="pharmacyQueue">0</h3>
+                                        <span>Pharmacy Queue</span>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="icon-bubbles warning font-large-2 float-right"></i>
+                                    </div>
+                                </div>
+                                <div class="progress mt-1 mb-0" style="height: 7px;">
+                                    <div id="pharmacyQueueBar" class="progress-bar bg-success" role="progressbar"
+                                         style="width: 0%"
+                                         aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--ANTRIAN SELESAI-->
+                <div class="col-xl-4 col-sm-6 col-12">
+                    <div id="doneQueueCard"
+                         class="card doneQueueCard shadow p-3 mb-4 rounded"
+                         th:onclick="toggleQueueList('done')">
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="media d-flex">
+                                    <div class="media-body text-left">
+                                        <h3 class="danger" id="doneQueue">0</h3>
+                                        <span>Done</span>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="icon-direction danger font-large-2 float-right"></i>
+                                    </div>
+                                </div>
+                                <div class="progress mt-1 mb-0" style="height: 7px;">
+                                    <div id="doneQueueBar" class="progress-bar bg-primary" role="progressbar"
+                                         style="width: 0%"
+                                         aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row p-0">
+                <div class="col-6 mt-3 mb-1">
+                    <h4 class="text-uppercase">Details</h4>
+                </div>
+                <div class="col-6 mt-2 mb-1 text-end">
+                    <button type="button" data-bs-toggle="modal"
+                            data-bs-target="#resetModal" class="btn btn-danger">Reset
+                    </button>
+                    <button type="button" id="registerBtn" class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#daftarModal">Register
+                    </button>
+                </div>
+            </div>
+
+            <div class="row p-0" id="totalQueueList" style="display: block">
+                <div class="col-md-12">
+                    <div class="card shadow p-3 mb-5 bg-white rounded">
+                        <div class="card-content">
+                            <div class="card-body text-center">
+                                <div class="table-responsive">
+                                    <table class="table" id="table-queue">
+                                        <thead>
+                                        <tr>
+                                            <th scope="col">Number</th>
+                                            <th scope="col">Name</th>
+                                            <th scope="col">Status</th>
+                                            <th scope="col">Contact</th>
+                                            <th scope="col">Action</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <!--total Queue List-->
+                                        <tr th:each="data, iter : ${totalQueuelist}">
+                                            <td th:text="${data.queueNumber}"></td>
+                                            <td th:text="${data.patientId.name}"></td>
+                                            <td th:switch="${data.status}">
+                                                <span th:case="'waiting'" class="text-warning" style="font-weight: bold">WAITING</span>
+                                                <span th:case="'pharmacy'" class="text-info" style="font-weight: bold">PHARMACY</span>
+                                                <span th:case="'check_up'" class="text-primary" style="font-weight: bold">CHECKUP</span>
+                                                <span th:case="'done'" class="text-success" style="font-weight: bold;">DONE</span>
+                                            </td>
+                                            <td th:text="${data.patientId.phoneNumber}"></td>
+                                            <td>
+                                                <button th:disabled="${data.status != 'waiting'}" type="button" class="btn btn-sm btn-info" onclick="updateStatus(this, 'check_up')">
+                                                    <i class="fa fa-phone"></i>
+                                                </button>
+                                                <button th:disabled="${data.status == 'done' || data.status == 'waiting'}" type="button" class="btn btn-sm btn-success" onclick="updateStatus(this, 'done')">
+                                                    <i class="fa fa-check"></i>
+                                                </button>
+                                                <button th:disabled="${data.status != 'waiting'}" type="button" class="btn btn-sm btn-danger" onclick="removeByQueueNumber(this)">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row p-0" id="pharmacyQueueList" style="display: none">
+                <div class="col-md-12">
+                    <div class="card shadow p-3 mb-5 bg-white rounded">
+                        <div class="card-content">
+                            <div class="card-body text-center">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                        <tr>
+                                            <th scope="col">Number</th>
+                                            <th scope="col">Name</th>
+                                            <th scope="col">Contact</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <!--total Queue List-->
+                                        <tr th:each="data, iter : ${pharmacyQueueList}">
+                                            <td th:text="${data.queueNumber}"></td>
+                                            <td th:text="${data.patientId.name}"></td>
+                                            <td th:text="${data.patientId.phoneNumber}"></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row p-0" id="doneQueueList" style="display: none">
+                <div class="col-md-12">
+                    <div class="card shadow p-3 mb-5 bg-white rounded">
+                        <div class="card-content">
+                            <div class="card-body text-center">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                        <tr>
+                                            <th scope="col">Number</th>
+                                            <th scope="col">Name</th>
+                                            <th scope="col">Contact</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <!--total Queue List-->
+                                        <tr th:each="data, iter : ${doneQueueList}">
+                                            <td th:text="${data.queueNumber}"></td>
+                                            <td th:text="${data.patientId.name}"></td>
+                                            <td th:text="${data.patientId.phoneNumber}"></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </div>
+
+    <!-- Modal Calling -->
+    <div class="modal fade" id="callingModal" data-keyboard="false" data-backdrop="static" tabindex="-1"
+         aria-labelledby="callingModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="callingModalLabel">Modal title</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    ...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reset -->
+    <div class="modal fade" id="resetModal" data-keyboard="false" data-backdrop="static" tabindex="-1"
+         aria-labelledby="callingModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resetModalLabel">Reset Queue</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to reset the queue?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="removeQueue()">Yes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal New Queue -->
+    <div class="modal fade" id="daftarModal" data-keyboard="false" data-backdrop="static" tabindex="-1"
+         aria-labelledby="daftarModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+
+            <form th:object="${patient}"
+                  th:method="post"
+                  th:action="@{/queue/patient/new}">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="daftarModalLabel">Register Queue</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <ul class="nav nav-tabs mb-2 pb-1">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="registerLamaBtn" href="#">Patient</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="registerBaruBtn" href="#">New</a>
+                            </li>
+                        </ul>
+
+                        <!--PASIEN LAMA-->
+                        <div id="formPasienLama" style="display: block">
+                            <div class="form-group pb-2">
+                                <label for="idPasien">ID Pasien</label>
+                                <input type="text" id="idPasien" class="form-control" name="idPasien"
+                                       th:field="*{id}"/>
+                                <td th:if="${#fields.hasErrors('id')}" th:errors="*{id}">
+                                    <span>Name is required</span>
+                                </td>
+                            </div>
+                        </div>
+
+                        <!--PASIEN BARU-->
+                        <div id="formPasienBaru" style="display: none">
+                            <div class="form-group pb-2" style="display:none;">
+                                <label for="idPasienBaru">ID Pasien</label>
+                                <input type="text" id="idPasienBaru" class="form-control" name="idPasienBaru"
+                                       th:field="*{id}" value=""/>
+                                <td th:if="${#fields.hasErrors('id')}" th:errors="*{id}">
+                                    <span>Name is required</span>
+                                </td>
+                            </div>
+                            <div class="form-group pb-2">
+                                <label for="namaPasien">Name</label>
+                                <input type="text" id="namaPasien" class="form-control" name="namaPasien"
+                                       th:field="*{name}"/>
+                                <td th:if="${#fields.hasErrors('name')}" th:errors="*{name}">
+                                    <span>Name is required</span>
+                                </td>
+                            </div>
+                            <div class="form-group pb-2">
+                                <label for="phoneNumber">Phone Number</label>
+                                <input type="text" id="phoneNumber" class="form-control" name="phoneNumber"
+                                       th:field="*{phoneNumber}"/>
+                                <td th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}"><span>Phone Number is required</span>
+                                </td>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</section>
+
+<section layout:fragment="custom-script">
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            console.log("Hello world")
+
+            $.ajax({
+                type: "GET",
+                contentType: "application/json",
+                url: `/queue/data`,
+                success: function (response) {
+                    console.log(response);
+                    $('#currentQueue').html(response.currentQueue);
+                    $('#totalQueue').html(response.totalQueue);
+                    $('#totalQueueBar').css('width', `${(response.totalQueue / 15 * 100)}%`);
+                    $('#pharmacyQueue').html(response.pharmacyQueue);
+                    $('#pharmacyQueueBar').css('width', `${(response.pharmacyQueue / response.totalQueue * 100)}%`);
+                    $('#doneQueue').html(response.doneQueue);
+                    $('#doneQueueBar').css('width', `${(response.doneQueue / response.totalQueue * 100)}%`);
+
+                }
+            });
+
+            var daftarPasienLama = true
+
+            $('#registerLamaBtn').click(function () {
+                $('#registerBaruBtn').removeClass('active');
+                $(this).addClass('active');
+                daftarPasienLama = true;
+                var formPasienLama = document.getElementById("formPasienLama");
+                var formPasienBaru = document.getElementById("formPasienBaru");
+                formPasienLama.style.display = 'block';
+                formPasienBaru.style.display = 'none';
+            })
+
+            $('#registerBaruBtn').click(function () {
+                $('#registerLamaBtn').removeClass('active');
+                $(this).addClass('active');
+                var formPasienLama = document.getElementById("formPasienLama");
+                var formPasienBaru = document.getElementById("formPasienBaru");
+                formPasienLama.style.display = 'none';
+                formPasienBaru.style.display = 'block';
+            })
+        });
+
+        function toggleQueueList(value) {
+            document.getElementById("totalQueueList").style.display = value === 'total' ? 'block' : 'none';
+            document.getElementById("totalQueueCard").style.backgroundColor = value === 'total' ? '#A1E29C' : '#ffffff';
+
+            document.getElementById("pharmacyQueueList").style.display = value === 'pharmacy' ? 'block' : 'none';
+            document.getElementById("pharmacyQueueCard").style.backgroundColor = value === 'pharmacy' ? '#A1E29C' : '#ffffff';
+
+            document.getElementById("doneQueueList").style.display = value === 'done' ? 'block' : 'none';
+            document.getElementById("doneQueueCard").style.backgroundColor = value === 'done' ? '#A1E29C' : '#ffffff';
+        }
+
+        var table = $('#table-queue').DataTable();
+
+        function updateStatus(value, status) {
+
+            var queueNumber = $(value).closest("tr").find('td:eq(0)').text();
+            var currentStatus = $(value).closest("tr").find('td:eq(2) span').text();
+            var nextQueueNumber = parseInt($('#currentQueue').html()) + 1;
+
+            if (currentStatus === "CHECKUP" && status === 'done') {
+                status = 'pharmacy';
+            }
+
+            if (status === "check_up" && parseInt(queueNumber) !== nextQueueNumber) {
+                return;
+            }
+
+            // console.log(queueNumber);
+
+            var queue = {
+                queueNumber: queueNumber,
+                status: status
+            }
+
+            $.ajax({
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(queue),
+                url: `/queue/update`,
+                success: function (response) {
+                    console.log(response);
+                    window.location.reload(true);
+                }
+            });
+        }
+
+        function removeByQueueNumber(value) {
+            var queueNumber = $(value).closest("tr").find('td:eq(0)').text();
+
+            $.ajax({
+                type: "DELETE",
+                url: `/queue/remove?queueNumber=${queueNumber}`,
+                success: function (response) {
+                    console.log(response);
+                    window.location.reload(true);
+                }
+            });
+        }
+
+        function removeQueue() {
+
+            $.ajax({
+                type: "DELETE",
+                url: `/queue/reset`,
+                success: function (response) {
+                    console.log(response);
+                    window.location.reload(true);
+                }
+            });
+        }
+    </script>
+</section>
+</body>
+</html>
